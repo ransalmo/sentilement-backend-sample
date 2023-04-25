@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Formulario de prueba de análisis de sentimiento</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Add some basic styling to the form */
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 50px;
+      font-size: 20px;
+    }
+    textarea {
+      width: 80%;
+      height: 200px;
+      margin-bottom: 20px;
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 18px;
+    }
+    input[type="submit"] {
+      padding: 10px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    input[type="submit"]:hover {
+      background-color: #3e8e41;
+    }
+  </style>
+</head>
+<body>
+  <form id="text-entry-form">
+    <label for="text-entry">Ingrese un texto a analizar:</label>
+    <textarea id="text-entry" name="text-entry"></textarea>
+    <input type="submit" value="Analizar">
+  </form>
+  <script>
+    const form = document.querySelector('#text-entry-form');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const textEntry = document.querySelector('#text-entry').value;
+
+      const response = await fetch('http://127.0.0.1:8000/analysispost/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 'content': textEntry })
+      });
+
+      const data = await response.json();
+
+      console.log(data);
+      // Display the response data on the page
+      // For example:
+      const resultDiv = document.createElement('div');
+      resultDiv.textContent = `Sentimiento: ${data.sentiment} - Probabilidad: ${data.probability} - Texto original: ${data.text}`;
+      console.log(data);
+      form.appendChild(resultDiv);
+    });
+  </script>
+</body>
+</html>
