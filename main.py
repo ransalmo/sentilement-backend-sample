@@ -1,22 +1,25 @@
 from transformers import pipeline
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+import uvicorn
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from message import Message
+from sentimentAnalysis.qatar.qatar_model_wrapper import QatarModelWrapper
 
 sentiment_pipeline = pipeline(model="nlptown/bert-base-multilingual-uncased-sentiment")
+qatar = QatarModelWrapper()
 app = FastAPI()
-
+# se usa cors para permitir el acceso al api solo a clientes autorizados, en este caso se permite a todos por cuestiones practicas
 origins = [
     "*"
 ]
 
 app.add_middleware(
-    CORSMiddleware,
+    TrustedHostMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # se pueden especificar los metodos http permitidos
+    allow_headers=["*"], # se pueden especificar los headers permitidos
 )
 
 @app.get('/')
@@ -24,14 +27,13 @@ def get_root():
     return {'Este es el backend de una aplicación de análisis de sentimientos'}
 
 
-@app.get('/analysis/')
-async def query_analysis(text: str):
-    return analyze_sentiment(text)
+# @app.post('/v1/analysispost/')
+# async def query_analysis_post(content: Message):
+#     return analyze_sentiment(content.content)
 
-
-@app.post('/analysispost/')
+@app.post('/v2/qatarreview/')
 async def query_analysis_post(content: Message):
-    return analyze_sentiment(content.content)
+    return qatar.get_review(content.content)
 
 
 def analyze_sentiment(text: str):
@@ -51,3 +53,6 @@ def analyze_sentiment(text: str):
     prob = result[0]['score']
     # Format and return results
     return {'sentiment': sent, 'probability': prob, 'text': text}
+
+# if __name__ == "__main__":
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
